@@ -1,0 +1,159 @@
+version: '3.8'
+
+networks:
+  custom_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.0.0/24
+
+services:
+  energy-management-device:
+    build:
+      context: ./databases/energy-management-device/
+      dockerfile: Dockerfile
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: passw0rd
+      MYSQL_DATABASE: energy-management-device
+    container_name: energy-management-device-container
+    networks:
+      custom_network:
+         ipv4_address: 172.16.0.52
+  
+  energy-management-user:
+    build:
+      context: ./databases/energy-management-user/
+      dockerfile: Dockerfile
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: passw0rd
+      MYSQL_DATABASE: energy-management-user
+    container_name: energy-management-user-container
+    networks:
+      custom_network:
+         ipv4_address: 172.16.0.53
+
+  user-microservice:
+    build:
+      context: ./user_microservice/
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    networks:
+      custom_network:
+        ipv4_address: 172.16.0.54
+    container_name: user-microservice-container
+    environment:
+      - DB_IP=172.16.0.53
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=passw0rd
+      - DB_DBNAME=energy-management-user
+      - DEVICE_MICROSERVICE_IP=172.16.0.55
+      - MQ_HOST=172.16.0.59
+    depends_on:
+      - energy-management-user
+      - mq
+
+  device-microservice:
+    build:
+      context: ./device_microservice/
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    networks:
+      custom_network:
+        ipv4_address: 172.16.0.55
+    container_name: device-microservice-container
+    environment:
+      - DB_IP=172.16.0.52
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=passw0rd
+      - DB_DBNAME=energy-management-device
+      - MQ_HOST=172.16.0.59
+    depends_on:
+      - energy-management-device
+      - mq
+
+  front-end:
+    build:
+      context: ./energy_system_management_front/
+      dockerfile: Dockerfile
+    container_name: front-end-container
+    ports:
+      - "3000:3000"
+    networks:
+      custom_network:
+        ipv4_address: 172.16.0.56
+    depends_on:
+      - user-microservice
+      - device-microservice
+      - monitoring-microservice
+      - chat-microservice
+
+  energy-management-monitoring:
+    build:
+      context: ./databases/energy-management-monitoring/
+      dockerfile: Dockerfile
+    ports:
+      - "3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: passw0rd
+      MYSQL_DATABASE: energy-management-monitoring
+    container_name: energy-management-monitoring-container
+    networks:
+      custom_network:
+         ipv4_address: 172.16.0.57
+    
+  monitoring-microservice:
+    build:
+      context: ./monitoring_microservice/
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    networks:
+      custom_network:
+        ipv4_address: 172.16.0.58
+    container_name: monitoring-microservice-container
+    environment:
+      - DB_IP=172.16.0.57
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=passw0rd
+      - DB_DBNAME=energy-management-monitoring
+      - MQ_HOST=172.16.0.59
+    depends_on:
+      - energy-management-monitoring
+      - mq
+
+  chat-microservice:
+    build:
+      context: ./chat_microservice/
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    networks:
+      custom_network:
+        ipv4_address: 172.16.0.60
+    container_name: chat-microservice-container
+
+  mq:
+    build:
+      context: ./monitoring-mq
+      dockerfile: Dockerfile
+    networks:
+      custom_network:
+        ipv4_address: 172.16.0.59
+    ports:
+      - "1414:1414"
+      - "9443:9443"
+    
+    environment:
+      LICENSE: accept
+      MQ_QMGR_NAME: Monitoring_Queue_Manager
+      MQ_APP_PASSWORD: passw0rd
+    

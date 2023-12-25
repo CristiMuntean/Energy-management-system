@@ -1,0 +1,4 @@
+security:
+  jwt:
+    secret: 64GREAbGRlvHa1tnf5iVnm6sfqcsunhwTx44K6j63ErpQryAMDUuGSBnX0makyCRPdiwBI1UQzQhSRyRKTCIIN3iOxc0i8Q228qNlgdLYjHn8BL2lftoNQCLeeK3d1
+    expiration: 1800

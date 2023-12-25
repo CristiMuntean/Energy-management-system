@@ -1,0 +1,15 @@
+version: '3'
+services:
+  mq:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    ports:
+      - "1414:1414"
+      - "9443:9443"
+    
+    environment:
+      LICENSE: accept
+      MQ_QMGR_NAME: Monitoring_Queue_Manager
+      MQ_APP_PASSWORD: passw0rd
