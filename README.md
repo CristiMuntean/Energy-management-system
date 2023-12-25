@@ -2,7 +2,7 @@
 
 ## Overview
 
-Welcome to the Energy Management System repository! This project, developed for the Distributed Systems course at the Technical University of Cluj-Napoca, brings together four microservices, a console application, and a front-end. Together, they simulate a system managing smart devices, monitoring their energy consumption and displaying hourly consumption data.
+Welcome to the Energy Management System repository! This project brings together four microservices, a console application, and a front-end. Together, they simulate a system managing smart devices, monitoring their energy consumption and displaying hourly consumption data.
 
 ## Table of Contents
 
